@@ -1,6 +1,6 @@
 # encoding:utf-8
 from django.db import models
-
+import django.utils.timezone as timezone
 
 # Create your models here.
 class info_package_from(models.Model):
@@ -15,16 +15,7 @@ class info_package_from(models.Model):
         return self.package_from
 
 
-class info_package_link(models.Model):
-    package_id = models.CharField(max_length=20, primary_key=True)
-    package_to = models.CharField(max_length=20)
 
-    class Meta:
-        verbose_name = "资源包链接"
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return self.package_to
 
 
 class info_school_type(models.Model):
@@ -78,7 +69,7 @@ class info_period(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.period
+        return self.period_id
 
 
 class info_subject(models.Model):
@@ -102,7 +93,7 @@ class info_version(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.version
+        return self.version_id
 
 
 class info_grade(models.Model):
@@ -114,34 +105,34 @@ class info_grade(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.grade
+        return self.grade_id
 
 
 class rec_course(models.Model):
     lession_id = models.CharField(max_length=20, primary_key=True)
-    period_id = models.ForeignKey(info_period, on_delete=models.CASCADE)
-    subject_id = models.ForeignKey(info_subject, on_delete=models.CASCADE)
-    version_id = models.ForeignKey(info_version, on_delete=models.CASCADE)
-    grade_id = models.ForeignKey(info_grade, on_delete=models.CASCADE)
-    chapter_id = models.SmallIntegerField()
-    section_id = models.SmallIntegerField()
-    lesson_name = models.CharField(max_length=30)
+    period = models.ForeignKey(info_period, null=True,blank=True,on_delete=models.CASCADE)
+    subject = models.ForeignKey(info_subject,null=True,blank=True, on_delete=models.CASCADE)
+    version= models.ForeignKey(info_version,null=True,blank=True, on_delete=models.CASCADE)
+    grade = models.ForeignKey(info_grade,null=True,blank=True, on_delete=models.CASCADE)
+    chapter_id = models.SmallIntegerField(null=True,blank=True)
+    section_id = models.SmallIntegerField(null=True,blank=True)
+    lesson_name = models.CharField(max_length=30,null=True,blank=True)
 
     class Meta:
         verbose_name = "课程"
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.lesson_name
+        return self.lession_id
 
 
 class rec_package(models.Model):
     package_id = models.CharField(max_length=20, primary_key=True)
-    package_from_id = models.ForeignKey(info_package_from, on_delete=models.CASCADE)
-    updata_school_id = models.ForeignKey(info_school, on_delete=models.CASCADE)
-    update_teacher_id = models.ForeignKey(info_teacher, on_delete=models.CASCADE)
-    lession_id = models.ForeignKey(rec_course, on_delete=models.CASCADE)
-    update_time = models.DateTimeField(null=True)
+    package_from_id = models.ForeignKey(info_package_from,null=True,blank=True, on_delete=models.CASCADE)
+    updata_school_id = models.ForeignKey(info_school,null=True,blank=True, on_delete=models.CASCADE)
+    update_teacher_id = models.ForeignKey(info_teacher,null=True,blank=True, on_delete=models.CASCADE)
+    lession_id = models.ForeignKey(rec_course,null=True,blank=True, on_delete=models.CASCADE)
+    update_time = models.DateField(null=True,blank=True)
     view_count = models.BigIntegerField()
     comment_count = models.BigIntegerField()
     score = models.PositiveIntegerField()
@@ -156,6 +147,19 @@ class rec_package(models.Model):
 
     def __str__(self):
         return self.package_id
+
+class info_package_link(models.Model):
+    linkid = models.CharField(max_length=10,primary_key=True)
+    package_id = models.ForeignKey(rec_package,on_delete=models.CASCADE)
+    package_to = models.CharField(max_length=20)
+
+    class Meta:
+        verbose_name = "资源包链接"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.package_to
+
 
 class rec_package_view(models.Model):
     package_view_id = models.CharField(max_length=20, primary_key=True)

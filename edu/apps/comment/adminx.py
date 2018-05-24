@@ -46,7 +46,7 @@ class grade_admin(object):
 
 
 class course_admin(object):
-    list_display = ["lession_id", "period_id", "subject_id", "version_id", "grade_id", "chapter_id", "section_id", "lesson_name"]
+    list_display = ["lession_id", "period", "subject", "version", "grade", "chapter_id", "section_id", "lesson_name"]
 
 
 class package_admin(object):

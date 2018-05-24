@@ -19,12 +19,12 @@ import xadmin
 from rest_framework.documentation import include_docs_urls
 
 from rest_framework.routers import DefaultRouter
-from comment.views import InfopackfromViewset
+from comment.views import InfopackfromViewset,TableViewset,Table3View,Table4View,Table5View
 from rest_framework_jwt.views import obtain_jwt_token,refresh_jwt_token
 from users.views import UserViewset
 
 router = DefaultRouter()
-router.register(r'table2',InfopackfromViewset)
+# router.register(r'table2',TableViewset)
 router.register(r'register',UserViewset)
 
 urlpatterns = [
@@ -33,4 +33,8 @@ urlpatterns = [
     url(r'^index/$', TemplateView.as_view(template_name="index.html"), name="index"),
     url(r'^login/',obtain_jwt_token),
     url(r'^auth/refresh/',refresh_jwt_token),
+    url(r'^table/',TableViewset.as_view()),
+    url(r'^table3/',Table3View.as_view()),
+    url(r'^table4/',Table4View.as_view()),
+    url(r'^table5/',Table5View.as_view())
 ]
