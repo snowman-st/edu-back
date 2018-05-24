@@ -36,7 +36,7 @@ Werkzeug==0.14.1
 
 I load data from csv file into mysql by use the under command:
     load data infile '/var/lib/mysql-files/test1.csv' 
-    into table student
+    into table student character set gb2312
     fields terminated by ',' optionally enclosed by '"' escaped by '"' 
     lines terminated by '\r\n'; 
 Beacause of the secure limit,I have to put the csv file into folder '/var/lib/mysql-files/'.
