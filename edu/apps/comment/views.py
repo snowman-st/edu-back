@@ -63,8 +63,14 @@ class Table3View(View):
 			teacher_type.append(ttype[dic['is_key']])
 			type_count2.append(dic['count'])
 
-		sheng = request.GET.get('sheng')
-		school_locat = [i[0] for i in info_school.objects.filter(school_location=sheng).values_list('school_id')]
+		provin_list = [i[0] for i in info_school.objects.distinct().values_list('school_location')]
+		provinsum_list=[]
+		for p in provin_list:
+			school_locat = [i[0] for i in info_school.objects.filter(school_location=p).values_list('school_id')]
+			provinsum_list.append(len(rec_package.objects.filter(updata_school_id_id__in=school_locat)))
+
+		province = request.GET.get('province')
+		school_locat = [i[0] for i in info_school.objects.filter(school_location=province).values_list('school_id')]
 		locat_pack = rec_package.objects.filter(updata_school_id_id__in=school_locat).values('updata_school_id_id').annotate(count=Count('updata_school_id_id')).values('updata_school_id_id','count')
 		school_name=[]
 		package_sum=[]
@@ -72,8 +78,14 @@ class Table3View(View):
 			school_name.append(info_school.objects.get(school_id=dic['updata_school_id_id']).school_name)
 			package_sum.append(dic['count']+random.randint(300,800))
 
-		ql = [school_type,type_count,teacher_type,type_count2,school_name,package_sum]
+		ql = [school_type,type_count,teacher_type,type_count2,provin_list,provinsum_list,school_name,package_sum]
 		return HttpResponse(json.dumps(ql),content_type='application/json;charset=utf-8')
+#前四个返回值不用说
+#第五、六个是全国各省及各省上传资源包总量
+#第七、八个返回值用于：当用户点击地图上的某一个省份时，后台获取到一个 province 的参数
+#然后第七个返回值是该省份下的所有学校，第八个参数是每个学校上传的资源包数量
+#目前数据库中  陕西  和  北京  的学校数量多，可用这两个地区进行展示
+
 
 class Table4View(View):
 	def get(self,request):
@@ -103,9 +115,26 @@ class Table4View(View):
 			else:
 		 		subjectsname.append(subjname)
 		 		subject_score.append(dic['count'])
-		ql = [subjectname,subject_view,subjectsname,subject_score,(clicksum+good_sum)/packagesum*50]
-		qa = [['2018','2017'],[90,93]]
-		return HttpResponse(json.dumps(qa,ensure_ascii=False),content_type='application/json;charset=utf-8')
+
+		highrank_lession = view_lession.order_by('-count')[:10]
+		rank_lession = []
+		rank_lession_view = []
+		rank_lession_score = []
+		rank_lession_sum = []
+		for dic in list(highrank_lession):
+			rank_lession.append(rec_course.objects.get(lession_id=dic['lession_id']).lesson_name)
+			rank_lession_score.append(score_lession.get(lession_id=dic['lession_id'])['count'])
+			rank_lession_view.append(dic['count'])
+		rank_lession_sum = map(lambda a:a[0]+a[1],zip(rank_lession_score,rank_lession_view))
+		tmprank = sorted(zip(rank_lession,rank_lession_view,rank_lession_score,rank_lession_sum),key = lambda a:a[3],reverse=True)
+		rank_index = list(zip(*tmprank))
+		ql = [subjectname,subject_view,subjectsname,subject_score,(clicksum+good_sum)/packagesum*50,rank_index[0],rank_index[1],rank_index[2]]
+		return HttpResponse(json.dumps(ql,ensure_ascii=False),content_type='application/json;charset=utf-8')
+#第五个返回值是可用性的评价总得分
+#第六个是按照浏览量和评分相加之和排名较高的课程名
+#第7个是课程名对应的浏览量
+#第8个是课程名对应的评分
+
 
 class Table5View(View):
 	def get(self,request):
@@ -137,3 +166,7 @@ class Table5View(View):
 		score3 = (L1>M or L2>M) and 20 or (L1>L2 and L1/M*20 or L2/M*20) 
 		score = score11+score12+score3*2
 		return HttpResponse(json.dumps([subject,subscore11,subscore12,sublink,score3,score],ensure_ascii=False),content_type='application/json;charset=utf-8')
+#接受一个grade参数用于指定年级，若从前端没有发送grade，默认值为1；
+#subscore11是各个学科模块化得分，subscore12是层次化得分
+#sublink是各科链接总数
+#score是系统组织方式总得分
